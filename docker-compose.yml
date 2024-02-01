@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  elasticsearch:
+    image: 'docker.elastic.co/elasticsearch/elasticsearch:7.17.10'
+    environment:
+      - 'ELASTIC_PASSWORD=5qvt7efbfikf-hdcd#'
+      - 'discovery.type=single-node'
+      - 'xpack.security.enabled=false'
+    ports:
+      - '9200'
+      - '9300'
+
+  postgres:
+    image: 'postgres:latest'
+    environment:
+      - 'POSTGRES_DB=autoplus_benin'
+      - 'POSTGRES_PASSWORD=@ut0plu583n1n'
+      - 'POSTGRES_USER=autoplus'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - '5432'
+    # healthcheck:
+    #   test: [ "CMD", "pg_isready" ]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
+
+  autoplus-backend:
+    build:
+      context: ./autoplus_api
+    environment:
+      NODE_ENV: production
+    ports:
+      - 8081:8081
+    depends_on:
+      - postgres
+        # condition: service_healthy
+
+  autoplus-frontend:
+    build:
+      context: ./autoplus_frontend
+    environment:
+      NODE_ENV: production
+    ports:
+      - 3001:3001
+    volumes:
+      - frontend-data:/var/lib/autoplus_frontend/data
+    depends_on:
+      - autoplus-backend
+
+volumes:
+  db-data:
+  frontend-data:
